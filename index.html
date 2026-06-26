@@ -245,7 +245,36 @@ input[type=date]::-webkit-calendar-picker-indicator{opacity:.4}
 
 <!-- ADD ENTRY -->
 <div class="screen" id="screen-add">
-  <div class="card" style="margin-top:8px">
+
+  <!-- QUICK ACTIONS -->
+  <div style="margin-top:8px;margin-bottom:12px">
+    <div style="font-size:9px;color:var(--text3);font-weight:600;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px">Quick entry</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button onclick="openQuickLyft()" style="background:linear-gradient(135deg,#00b87a,#00966a);border:none;border-radius:var(--r);padding:14px 10px;color:white;font-family:'Sora',sans-serif;font-weight:600;font-size:13px;cursor:pointer;box-shadow:0 4px 16px rgba(0,184,122,0.28);display:flex;flex-direction:column;align-items:center;gap:6px">
+        <span style="font-size:24px">🚗</span>
+        Log Lyft Income
+      </button>
+      <button onclick="openQuickBillPay()" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);border:none;border-radius:var(--r);padding:14px 10px;color:white;font-family:'Sora',sans-serif;font-weight:600;font-size:13px;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,0.28);display:flex;flex-direction:column;align-items:center;gap:6px">
+        <span style="font-size:24px">💳</span>
+        Pay a Bill
+      </button>
+      <button onclick="openQuickBalance()" style="background:linear-gradient(135deg,#0891b2,#0e7490);border:none;border-radius:var(--r);padding:14px 10px;color:white;font-family:'Sora',sans-serif;font-weight:600;font-size:13px;cursor:pointer;box-shadow:0 4px 16px rgba(8,145,178,0.28);display:flex;flex-direction:column;align-items:center;gap:6px">
+        <span style="font-size:24px">🏦</span>
+        Update Balances
+      </button>
+      <button onclick="openQuickExpense()" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);border:none;border-radius:var(--r);padding:14px 10px;color:white;font-family:'Sora',sans-serif;font-weight:600;font-size:13px;cursor:pointer;box-shadow:0 4px 16px rgba(124,58,237,0.28);display:flex;flex-direction:column;align-items:center;gap:6px">
+        <span style="font-size:24px">🛒</span>
+        Log Expense
+      </button>
+    </div>
+  </div>
+
+  <!-- FULL ENTRY FORM -->
+  <div class="card" id="full-entry-form" style="display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:600" id="full-form-title">New Entry</div>
+      <button onclick="document.getElementById('full-entry-form').style.display='none'" style="background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer">✕</button>
+    </div>
     <div class="type-toggle">
       <button class="type-btn sel-inc" id="btn-inc" onclick="setTxnType('income')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Income
@@ -261,6 +290,114 @@ input[type=date]::-webkit-calendar-picker-indicator{opacity:.4}
     <div class="form-row"><label class="form-lbl">Description</label><input type="text" id="t-desc" placeholder="Optional note"></div>
     <div class="form-row"><label class="form-lbl">Date</label><input type="date" id="t-date"></div>
     <button class="btn btn-accent" id="save-txn-btn" onclick="saveTxn()">Save Entry</button>
+  </div>
+
+  <!-- RECENT ENTRIES TODAY -->
+  <div class="sec-hdr" style="margin-top:4px">Today's entries</div>
+  <div class="card" id="today-entries">
+    <div class="empty"><div class="empty-icon">📝</div>No entries today yet</div>
+  </div>
+
+</div>
+
+<!-- QUICK LYFT MODAL -->
+<div class="modal-overlay" id="modal-quick-lyft" onclick="closeOut(event,'modal-quick-lyft')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:36px;margin-bottom:6px">🚗</div>
+      <div class="modal-title" style="margin-bottom:2px">Log Lyft Income</div>
+      <div style="font-size:11px;color:var(--text3)" id="lyft-date-label"></div>
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">How much did you make? ($)</label>
+      <input type="number" id="ql-amt" placeholder="0.00" step="0.01" inputmode="decimal" style="font-size:28px;text-align:center;font-weight:700;color:var(--green)">
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">Hours driven (optional)</label>
+      <input type="number" id="ql-hrs" placeholder="e.g. 6" step="0.5" inputmode="decimal">
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">Transfer to</label>
+      <select id="ql-bank"></select>
+    </div>
+    <button class="btn btn-accent" style="background:linear-gradient(135deg,#00b87a,#00966a);box-shadow:0 4px 16px rgba(0,184,122,0.28)" onclick="saveQuickLyft()">✓ Save Lyft Income</button>
+  </div>
+</div>
+
+<!-- QUICK BILL PAY MODAL -->
+<div class="modal-overlay" id="modal-quick-bill" onclick="closeOut(event,'modal-quick-bill')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💳 Pay a Bill</div>
+    <div class="form-row">
+      <label class="form-lbl">Which bill?</label>
+      <select id="qb-bill"></select>
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">Amount paying ($)</label>
+      <input type="number" id="qb-amt" placeholder="0.00" step="0.01" inputmode="decimal">
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">Paying from</label>
+      <select id="qb-bank"></select>
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">Payment method</label>
+      <select id="qb-method">
+        <option value="Direct">Direct bank payment</option>
+        <option value="Zelle">Zelle</option>
+        <option value="Cash">Cash</option>
+        <option value="Card">Card</option>
+        <option value="Auto">Auto deduct</option>
+      </select>
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">Date</label>
+      <input type="date" id="qb-date">
+    </div>
+    <div style="background:var(--am-bg);border:1px solid var(--am-b);border-radius:var(--rs);padding:10px 12px;margin-bottom:12px;font-size:12px;color:var(--amber)" id="qb-preview"></div>
+    <button class="btn btn-accent" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);box-shadow:0 4px 16px rgba(37,99,235,0.28)" onclick="saveQuickBill()">✓ Mark as Paid</button>
+  </div>
+</div>
+
+<!-- QUICK BALANCE UPDATE MODAL -->
+<div class="modal-overlay" id="modal-quick-balance" onclick="closeOut(event,'modal-quick-balance')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🏦 Update All Balances</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:14px">Enter current balance for each account. Leave blank to keep unchanged.</div>
+    <div id="qbal-fields"></div>
+    <button class="btn btn-accent" style="background:linear-gradient(135deg,#0891b2,#0e7490);box-shadow:0 4px 16px rgba(8,145,178,0.28)" onclick="saveQuickBalances()">✓ Update All Balances</button>
+  </div>
+</div>
+
+<!-- QUICK EXPENSE MODAL -->
+<div class="modal-overlay" id="modal-quick-expense" onclick="closeOut(event,'modal-quick-expense')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🛒 Log Expense</div>
+    <div class="form-row">
+      <label class="form-lbl">Amount ($)</label>
+      <input type="number" id="qe-amt" placeholder="0.00" step="0.01" inputmode="decimal">
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">Category</label>
+      <select id="qe-cat"></select>
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">Paid from</label>
+      <select id="qe-bank"></select>
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">Description</label>
+      <input type="text" id="qe-desc" placeholder="e.g. Gas, groceries">
+    </div>
+    <div class="form-row">
+      <label class="form-lbl">Date</label>
+      <input type="date" id="qe-date">
+    </div>
+    <button class="btn btn-accent" style="background:linear-gradient(135deg,#7c3aed,#6d28d9);box-shadow:0 4px 16px rgba(124,58,237,0.28)" onclick="saveQuickExpense()">✓ Save Expense</button>
   </div>
 </div>
 
@@ -657,6 +794,7 @@ function enterApp(){
   document.getElementById('t-date').value=today();
   document.getElementById('lp-date').value=today();
   showTab('dashboard');
+  renderTodayEntries();
 }
 window.logout=function(){
   role=null;
@@ -1188,6 +1326,242 @@ window.clearAll=async function(){
   await saveTransactions();await saveBillStatus();
   toast('All entries cleared',true);renderDashboard();
 };
+
+// ─── QUICK ACTIONS ───────────────────────────────────────────────────────────
+
+window.openQuickLyft = function(){
+  document.getElementById('ql-amt').value = '';
+  document.getElementById('ql-hrs').value = '';
+  document.getElementById('lyft-date-label').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  // populate bank select
+  const s = document.getElementById('ql-bank');
+  s.innerHTML = D.banks.filter(b=>b.type==='Liquid').map(b=>`<option value="${b.id}">${b.icon} ${b.name}</option>`).join('');
+  // default to Lyft account if exists
+  const lyftAcc = D.banks.find(b=>b.name.toLowerCase().includes('lyft'));
+  if(lyftAcc) s.value = lyftAcc.id;
+  openModal('modal-quick-lyft');
+  setTimeout(()=>document.getElementById('ql-amt').focus(), 300);
+};
+
+window.saveQuickLyft = async function(){
+  const amt = parseFloat(document.getElementById('ql-amt').value);
+  const hrs = parseFloat(document.getElementById('ql-hrs').value)||0;
+  const bankId = document.getElementById('ql-bank').value;
+  if(!amt||amt<=0) return toast('Enter amount earned');
+  const desc = hrs>0 ? `Lyft — ${hrs}hrs @ $${(amt/hrs).toFixed(0)}/hr` : 'Lyft income';
+  const catId = D.incCats.find(c=>c.name.toLowerCase().includes('lyft')||c.name.toLowerCase().includes('uber'))?.id || D.incCats[1].id;
+  const entry = {id:uid(),type:'income',amount:amt,category:catId,bankId,who:'Sharjeel',description:desc,date:today()};
+  D.transactions.unshift(entry);
+  // update bank balance
+  const bank = D.banks.find(b=>b.id===bankId);
+  if(bank){ bank.balance = parseFloat((bank.balance + amt).toFixed(2)); await saveBanks(); }
+  await saveTransactions();
+  closeModal('modal-quick-lyft');
+  toast(`✓ $${amt.toFixed(2)} Lyft income saved!`, true);
+  renderTodayEntries();
+  showTab('dashboard');
+};
+
+window.openQuickBillPay = function(){
+  // populate bills
+  const s = document.getElementById('qb-bill');
+  s.innerHTML = D.bills.map(b=>`<option value="${b.id}">${b.icon} ${b.name} — ${fmt(b.amount)}</option>`).join('');
+  // populate banks
+  const bs = document.getElementById('qb-bank');
+  bs.innerHTML = '<option value="">Select account</option>' + D.banks.filter(b=>b.type==='Liquid').map(b=>`<option value="${b.id}">${b.icon} ${b.name} (${fmt(b.balance)})</option>`).join('');
+  document.getElementById('qb-date').value = today();
+  document.getElementById('qb-amt').value = '';
+  updateBillPayPreview();
+  openModal('modal-quick-bill');
+};
+
+window.updateBillPayPreview = function(){
+  const billId = document.getElementById('qb-bill').value;
+  const amt = parseFloat(document.getElementById('qb-amt').value)||0;
+  const bankId = document.getElementById('qb-bank').value;
+  const bill = D.bills.find(b=>b.id===billId);
+  const bank = D.banks.find(b=>b.id===bankId);
+  const prev = document.getElementById('qb-preview');
+  if(bill && amt>0 && bank){
+    const newBal = bank.balance - amt;
+    const remaining = bill.amount - amt;
+    prev.innerHTML = `💳 Paying ${fmt(amt)} for ${bill.name}<br>🏦 ${bank.name}: ${fmt(bank.balance)} → ${fmt(newBal)}`
+      + (remaining>0.01 ? `<br>📋 Bill remaining: ${fmt(remaining)}` : '<br>✅ Bill fully paid');
+    prev.style.display='block';
+  } else {
+    prev.style.display='none';
+  }
+};
+
+// Add event listeners for preview update
+setTimeout(()=>{
+  ['qb-bill','qb-amt','qb-bank'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('input', updateBillPayPreview);
+    if(el) el.addEventListener('change', updateBillPayPreview);
+  });
+},1000);
+
+window.saveQuickBill = async function(){
+  const billId = document.getElementById('qb-bill').value;
+  const amt = parseFloat(document.getElementById('qb-amt').value);
+  const bankId = document.getElementById('qb-bank').value;
+  const method = document.getElementById('qb-method').value;
+  const date = document.getElementById('qb-date').value;
+  if(!billId) return toast('Select a bill');
+  if(!amt||amt<=0) return toast('Enter payment amount');
+  if(!bankId) return toast('Select payment account');
+  if(!date) return toast('Pick a date');
+
+  const bill = D.bills.find(b=>b.id===billId);
+  const bank = D.banks.find(b=>b.id===bankId);
+  if(!bill||!bank) return;
+
+  // Check if full or partial
+  const isFullPay = amt >= bill.amount - 0.01;
+
+  // Log as expense transaction
+  const entry = {id:uid(),type:'expense',amount:amt,category:bill.catId,bankId,who:'Sharjeel',
+    description:`${method}: ${bill.name}${!isFullPay?' (partial)':''}`,date};
+  D.transactions.unshift(entry);
+
+  // Deduct from bank
+  bank.balance = parseFloat((bank.balance - amt).toFixed(2));
+
+  // If partial — reduce bill amount
+  if(!isFullPay){
+    bill.amount = parseFloat((bill.amount - amt).toFixed(2));
+  } else {
+    // Mark as paid this month
+    const mk = mkey(new Date());
+    if(!D.billStatus) D.billStatus={};
+    D.billStatus[bkey(mk, billId)] = true;
+  }
+
+  await saveTransactions();
+  await saveBanks();
+  await saveBills();
+  await saveBillStatus();
+  closeModal('modal-quick-bill');
+  toast(`✓ ${fmt(amt)} paid for ${bill.name}!`, true);
+  renderTodayEntries();
+  showTab('dashboard');
+};
+
+window.openQuickBalance = function(){
+  const fields = document.getElementById('qbal-fields');
+  fields.innerHTML = D.banks.map(b=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="font-size:18px;width:30px;text-align:center">${b.icon}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600">${b.name}</div>
+        <div style="font-size:10px;color:var(--text3)">${b.type} · current: ${fmt(b.balance)}</div>
+      </div>
+      <input type="number" id="qbal-${b.id}" placeholder="${b.balance.toFixed(2)}"
+        step="0.01" inputmode="decimal"
+        style="width:110px;padding:8px 10px;font-size:14px;font-family:'JetBrains Mono',monospace;font-weight:500;text-align:right">
+    </div>`).join('');
+  openModal('modal-quick-balance');
+};
+
+window.saveQuickBalances = async function(){
+  let changed = 0;
+  D.banks.forEach(b=>{
+    const el = document.getElementById('qbal-'+b.id);
+    if(el && el.value.trim()!==''){
+      const newBal = parseFloat(el.value);
+      if(!isNaN(newBal) && newBal !== b.balance){
+        b.balance = parseFloat(newBal.toFixed(2));
+        changed++;
+      }
+    }
+  });
+  if(changed===0) return toast('No balances changed');
+  await saveBanks();
+  closeModal('modal-quick-balance');
+  toast(`✓ ${changed} balance${changed>1?'s':''} updated!`, true);
+  showTab('dashboard');
+};
+
+window.openQuickExpense = function(){
+  const catSel = document.getElementById('qe-cat');
+  catSel.innerHTML = D.expCats.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+  const bankSel = document.getElementById('qe-bank');
+  bankSel.innerHTML = '<option value="">Select account</option>' + D.banks.filter(b=>b.type==='Liquid').map(b=>`<option value="${b.id}">${b.icon} ${b.name} (${fmt(b.balance)})</option>`).join('');
+  document.getElementById('qe-date').value = today();
+  document.getElementById('qe-amt').value = '';
+  document.getElementById('qe-desc').value = '';
+  openModal('modal-quick-expense');
+  setTimeout(()=>document.getElementById('qe-amt').focus(), 300);
+};
+
+window.saveQuickExpense = async function(){
+  const amt = parseFloat(document.getElementById('qe-amt').value);
+  const catId = document.getElementById('qe-cat').value;
+  const bankId = document.getElementById('qe-bank').value;
+  const desc = document.getElementById('qe-desc').value.trim();
+  const date = document.getElementById('qe-date').value;
+  if(!amt||amt<=0) return toast('Enter amount');
+  if(!catId) return toast('Select category');
+  const entry = {id:uid(),type:'expense',amount:amt,category:catId,bankId,who:'Sharjeel',description:desc,date};
+  D.transactions.unshift(entry);
+  // deduct from bank
+  if(bankId){
+    const bank = D.banks.find(b=>b.id===bankId);
+    if(bank){ bank.balance = parseFloat((bank.balance - amt).toFixed(2)); await saveBanks(); }
+  }
+  await saveTransactions();
+  closeModal('modal-quick-expense');
+  toast(`✓ $${amt.toFixed(2)} expense saved!`, true);
+  renderTodayEntries();
+  showTab('dashboard');
+};
+
+function renderTodayEntries(){
+  const t = today();
+  const todayTxns = D.transactions.filter(x=>x.date===t);
+  const el = document.getElementById('today-entries');
+  if(!el) return;
+  if(todayTxns.length===0){
+    el.innerHTML='<div class="empty"><div class="empty-icon">📝</div>No entries today yet</div>';
+    return;
+  }
+  const totInc = todayTxns.filter(x=>x.type==='income').reduce((s,x)=>s+x.amount,0);
+  const totExp = todayTxns.filter(x=>x.type==='expense').reduce((s,x)=>s+x.amount,0);
+  el.innerHTML = `
+    <div style="display:flex;gap:12px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+      <div style="flex:1;text-align:center">
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:3px">In</div>
+        <div style="font-family:'JetBrains Mono',monospace;color:var(--green);font-weight:700">${fmt(totInc)}</div>
+      </div>
+      <div style="flex:1;text-align:center">
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:3px">Out</div>
+        <div style="font-family:'JetBrains Mono',monospace;color:var(--red);font-weight:700">${fmt(totExp)}</div>
+      </div>
+      <div style="flex:1;text-align:center">
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin-bottom:3px">Net</div>
+        <div style="font-family:'JetBrains Mono',monospace;color:${totInc-totExp>=0?'var(--green)':'var(--red)'};font-weight:700">${totInc-totExp<0?'-':''}${fmt(totInc-totExp)}</div>
+      </div>
+    </div>
+    ${todayTxns.map(x=>{
+      const c=catById(x.category);
+      return`<div class="list-item">
+        <div class="item-left">
+          <div class="item-icon" style="background:${x.type==='income'?'var(--gn-bg)':'var(--rd-bg)'}">${c.icon}</div>
+          <div class="item-info">
+            <div class="item-name">${x.description||c.name}</div>
+            <div class="item-sub">${c.name}</div>
+          </div>
+        </div>
+        <div class="item-right">
+          <div class="item-val" style="color:${x.type==='income'?'var(--green)':'var(--red)'}">${x.type==='income'?'+':'-'}${fmt(x.amount)}</div>
+          ${role==='admin'?`<button class="del-btn" onclick="deleteTxn('${x.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14H6L5,6"/></svg></button>`:''}
+        </div>
+      </div>`;
+    }).join('')}`;
+}
+
+window.openQuickExpense = window.openQuickExpense;
 
 // ─── START ───────────────────────────────────────────────────────────────────
 initDB();
