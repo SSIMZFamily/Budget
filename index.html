@@ -452,6 +452,10 @@ input[type=date]::-webkit-calendar-picker-indicator{opacity:.4}
   <div class="card" id="inc-cats-list"></div>
   <div class="sec-hdr">Expense categories <button class="btn btn-ghost btn-sm" onclick="openModal('modal-add-exp-cat')">+ Add</button></div>
   <div class="card" id="exp-cats-list"></div>
+  <div class="sec-hdr">Private</div>
+  <div class="card">
+    <div class="list-item"><div><div class="item-name">Bill Status Tracker</div><div class="item-sub">Days late / days ahead — admin only</div></div><button class="btn btn-ghost btn-sm" onclick="openBillTracker()">Open</button></div>
+  </div>
   <div class="sec-hdr">Security</div>
   <div class="card">
     <div class="list-item"><div><div class="item-name">Admin PIN</div><div class="item-sub">Full access · delete & edit</div></div><button class="btn btn-ghost btn-sm" onclick="changePin('admin')">Change</button></div>
@@ -551,6 +555,13 @@ input[type=date]::-webkit-calendar-picker-indicator{opacity:.4}
   <div class="form-row"><label class="form-lbl">Name</label><input type="text" id="nec-name"></div>
   <div class="form-row"><label class="form-lbl">Icon</label><input type="text" id="nec-icon" placeholder="📦" maxlength="2"></div>
   <button class="btn btn-accent" onclick="addCat('expense')">Add</button>
+</div></div>
+
+<div class="modal-overlay" id="modal-bill-tracker" onclick="closeOut(event,'modal-bill-tracker')"><div class="modal" style="max-height:85vh">
+  <div class="modal-handle"></div>
+  <div class="modal-title">📆 Bill Status Tracker</div>
+  <div style="font-size:11px;color:var(--text3);margin-bottom:14px">Red = days late · Amber = due soon · Gray = on track · Green = paid this month</div>
+  <div id="bill-tracker-list"></div>
 </div></div>
 
 </div><!-- end main-app -->
@@ -1332,6 +1343,57 @@ function renderHistory(){
 }
 
 // ─── RENDER SETTINGS ─────────────────────────────────────────────────────────
+window.openBillTracker = function(){
+  if(role!=='admin') return;
+  renderBillTracker();
+  openModal('modal-bill-tracker');
+};
+
+function renderBillTracker(){
+  const now = new Date(); now.setHours(0,0,0,0);
+  const mk = mkey(now);
+  const rows = D.bills.map(b=>{
+    const paid = isPaid(b.id, mk);
+    const dueThisMonth = new Date(now.getFullYear(), now.getMonth(), b.day); dueThisMonth.setHours(0,0,0,0);
+    const diff = Math.round((now - dueThisMonth)/86400000); // positive = late, negative = days left
+    return {b, paid, diff};
+  });
+  // Sort: latest overdue first, then soonest due, then paid last
+  rows.sort((x,y)=>{
+    if(x.paid !== y.paid) return x.paid ? 1 : -1;
+    return y.diff - x.diff;
+  });
+  document.getElementById('bill-tracker-list').innerHTML = rows.map(({b,paid,diff})=>{
+    let badge, sub;
+    if(paid){
+      badge = '<span class="badge b-green">✓ Paid</span>';
+      sub = 'Paid this month';
+    } else if(diff > 0){
+      badge = `<span class="badge b-red">${diff} day${diff===1?'':'s'} late</span>`;
+      sub = `Was due the ${b.day}${ordinal(b.day)}`;
+    } else if(diff === 0){
+      badge = '<span class="badge b-red">Due TODAY</span>';
+      sub = `Due the ${b.day}${ordinal(b.day)}`;
+    } else if(diff >= -3){
+      badge = `<span class="badge b-amber">${-diff} day${diff===-1?'':'s'} left</span>`;
+      sub = `Due the ${b.day}${ordinal(b.day)}`;
+    } else {
+      badge = `<span class="badge b-gray">${-diff} days left</span>`;
+      sub = `Due the ${b.day}${ordinal(b.day)}`;
+    }
+    return `<div class="list-item">
+      <div class="item-left">
+        <div class="item-icon" style="background:var(--bg3)">${b.icon}</div>
+        <div class="item-info">
+          <div class="item-name">${b.name}</div>
+          <div class="item-sub">${sub} · ${fmt(b.amount)}</div>
+        </div>
+      </div>
+      <div class="item-right">${badge}</div>
+    </div>`;
+  }).join('') || '<div class="empty">No bills to track</div>';
+}
+
 function renderSettings(){
   ['inc','exp'].forEach(t=>{
     const cats=t==='inc'?D.incCats:D.expCats;
